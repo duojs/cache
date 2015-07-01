@@ -1,5 +1,8 @@
 # duo-cache
 
+[![NPM version][npm-image]][npm-url]
+[![build status][travis-image]][travis-url]
+
 > The cache duo uses internally during builds.
 
 ## API
@@ -44,3 +47,9 @@ including:
  - store additional processing during the build process (such as the result
    of scanning a file for dependencies)
  - expose this hook to other modules that cache results (eg: gh-resolve)
+
+
+[npm-image]: https://img.shields.io/npm/v/duo-cache.svg?style=flat
+[npm-url]: https://npmjs.org/package/duo-cache
+[travis-image]: https://img.shields.io/travis/duojs/duo-cache.svg?style=flat
+[travis-url]: https://travis-ci.org/duojs/duo-cache

@@ -3,6 +3,7 @@
  * Module dependiencs.
  */
 
+var debug = require('debug')('duo-cache');
 var level = require('level');
 var Promise = require('native-or-bluebird');
 var promisify = require('level-promise');
@@ -30,12 +31,26 @@ module.exports = Cache;
 function Cache(location) {
   if (!(this instanceof Cache)) return new Cache(location);
 
+  debug('new instance', location);
   this.location = location;
-  this.leveldb = promisify(level(location, {
+}
+
+/**
+ * Initializes the instance and opens the database.
+ *
+ * @returns {Promise}
+ */
+
+Cache.prototype.initialize = function () {
+  if (this.leveldb) return this.leveldb.open();
+
+  this.leveldb = promisify(level(this.location, {
     keyEncoding: 'json',
     valueEncoding: 'json'
   }));
-}
+
+  return this.leveldb.open();
+};
 
 /**
  * Reads the list of files into memory.
@@ -47,15 +62,20 @@ function Cache(location) {
  */
 
 Cache.prototype.read = function () {
+  debug('reading mapping from disk');
   var db = this.leveldb;
   var ret = {};
 
   return new Promise(function (resolve, reject) {
     db.createReadStream()
-      .on('error', reject)
+      .on('error', function (err) {
+        debug('error reading', err.stack);
+        reject(err);
+      })
       .on('data', function (data) {
         if (data.key[0] !== 'file') return;
         var file = data.value;
+        debug('file read', file.id);
         ret[file.id] = file;
       })
       .on('end', function () {
@@ -75,9 +95,12 @@ Cache.prototype.read = function () {
 
 Cache.prototype.update = function (mapping) {
   var db = this.leveldb;
+
   var ops = values(mapping).map(function (file) {
     return { type: 'put', key: [ 'file', file.id ], value: file };
   }, this);
+
+  debug('updating %d files', ops.length);
   return db.batch(ops);
 };
 
@@ -92,7 +115,14 @@ Cache.prototype.update = function (mapping) {
 Cache.prototype.file = function (id, data) {
   var db = this.leveldb;
   var key = [ 'file', id ];
-  return data ? db.put(key, data) : db.get(key);
+
+  if (data) {
+    debug('update file: %s', id);
+    return db.put(key, data);
+  } else {
+    debug('get file: %s', id);
+    return db.get(key);
+  }
 };
 
 /**
@@ -107,7 +137,14 @@ Cache.prototype.file = function (id, data) {
 Cache.prototype.plugin = function (name, id, data) {
   var db = this.leveldb;
   var key = [ 'plugin', name, key ];
-  return data ? db.put(key, data) : db.get(key);
+
+  if (data) {
+    debug('setting %s data for %s plugin', key, name);
+    return db.put(key, data);
+  } else {
+    debug('getting %s data for %s plugin', key, name);
+    return db.get(key);
+  }
 };
 
 /**
@@ -119,6 +156,8 @@ Cache.prototype.plugin = function (name, id, data) {
 Cache.prototype.clean = function () {
   var db = this.leveldb;
   var location = this.location;
+
+  debug('cleaning database');
   return Promise.promisify(db.close, db)()
     .then(function () {
       return destroy(location);

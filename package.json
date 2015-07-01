@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/duojs/cache",
   "dependencies": {
+    "debug": "^2.2.0",
     "level": "^1.2.0",
     "level-promise": "^2.0.4",
     "native-or-bluebird": "^1.2.0",

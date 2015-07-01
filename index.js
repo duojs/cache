@@ -42,12 +42,16 @@ function Cache(location) {
 Cache.prototype.initialize = function () {
   if (this.leveldb) return this.leveldb.open();
 
-  this.leveldb = promisify(level(this.location, {
+  var db = this.leveldb = promisify(level(this.location, {
     keyEncoding: 'json',
     valueEncoding: 'json'
   }));
 
-  return this.leveldb.open();
+  // TODO: remove this once https://github.com/nathan7/level-promise/pull/5
+  // is merged and released.
+  db.open = Promise.promisify(db.open, db);
+
+  return db.open();
 };
 
 /**

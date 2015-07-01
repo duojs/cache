@@ -29,8 +29,6 @@ module.exports = Cache;
  */
 
 function Cache(location) {
-  if (!(this instanceof Cache)) return new Cache(location);
-
   debug('new instance', location);
   this.location = location;
 }

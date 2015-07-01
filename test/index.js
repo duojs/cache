@@ -1,7 +1,6 @@
 var assert = require('assert');
 var Cache = require('..');
 var path = require('path');
-var level = require('level');
 var Promise = require('native-or-bluebird');
 
 var fs = Promise.promisifyAll(require('fs'));
@@ -25,15 +24,9 @@ describe('Cache(path)', function () {
     assert(cache instanceof Cache);
   });
 
-  it('should not require the new keyword', function () {
-    var cache = Cache(file);
-    assert(cache instanceof Cache);
-  });
-
   it('should set some internal properties', function () {
     var cache = new Cache(file);
     assert.equal(cache.location, file);
-    assert('leveldb' in cache);
   });
 });
 
@@ -46,6 +39,10 @@ describe('Cache#update(files)', function () {
 
   before(function () {
     cache = new Cache(file);
+    return cache.initialize();
+  });
+
+  before(function () {
     return cache.update(mapping);
   });
 
@@ -61,11 +58,15 @@ describe('Cache#read()', function () {
   var file = db('read-test');
   var mapping = {
     'a.js': { id: 'a.js', src: 'console.log("Hello World");' },
-    'b.js': { id: 'b.js', src: 'console.log("Hello World");' },
+    'b.js': { id: 'b.js', src: 'console.log("Hello World");' }
   };
 
   before(function () {
     cache = new Cache(file);
+    return cache.initialize();
+  });
+
+  before(function () {
     return cache.update(mapping);
   });
 
@@ -82,6 +83,7 @@ describe('Cache#plugin(name, key, value)', function () {
 
   before(function () {
     cache = new Cache(file);
+    return cache.initialize();
   });
 
   it('should store data to the plugin namespace', function () {
@@ -101,12 +103,13 @@ describe('Cache#clean()', function () {
 
   before(function () {
     cache = new Cache(file);
+    return cache.initialize();
   });
 
   it('should delete the entire cache directory', function () {
     return cache.clean()
       .then(function () {
-        return fs.exists(cache.location)
+        return fs.exists(cache.location);
       })
       .then(function (exists) {
         assert(!exists);

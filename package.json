@@ -21,6 +21,7 @@
     "object-values": "^1.0.0"
   },
   "devDependencies": {
+    "bluebird": "^2.9.30",
     "mkdirp": "^0.5.1",
     "mocha": "^2.2.5",
     "rimraf": "^2.4.0"

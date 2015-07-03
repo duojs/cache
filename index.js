@@ -60,7 +60,7 @@ Cache.prototype.read = unyield(function *() {
   var db = this.leveldb;
   var ret = {};
 
-  yield function (done) {
+  return yield function (done) {
     db.createReadStream()
       .on('error', function (err) {
         debug('error reading', err.stack);

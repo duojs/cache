@@ -25,6 +25,7 @@
   "devDependencies": {
     "bluebird": "^2.9.31",
     "co-fs": "^1.2.0",
+    "co-mocha": "^1.1.2",
     "gnode": "^0.1.1",
     "mocha": "^2.2.5"
   }

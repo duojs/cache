@@ -130,7 +130,7 @@ Cache.prototype.file = unyield(function *(id, data) {
 
 Cache.prototype.plugin = unyield(function *(name, id, data) {
   var db = this.leveldb;
-  var key = [ 'plugin', name, key ];
+  var key = [ 'plugin', name, id ];
 
   if (data) {
     debug('setting %s data for %s plugin', key, name);

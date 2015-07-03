@@ -1,4 +1,9 @@
 
+2.0.2 / 2015-07-03
+==================
+
+  * preventing Cache#plugin() from throwing during get
+
 2.0.1 / 2015-07-03
 ==================
 

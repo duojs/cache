@@ -23,6 +23,7 @@
     "unyield": "0.0.1"
   },
   "devDependencies": {
+    "bluebird": "^2.9.31",
     "co-fs": "^1.2.0",
     "gnode": "^0.1.1",
     "mocha": "^2.2.5"

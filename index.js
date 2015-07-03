@@ -137,7 +137,12 @@ Cache.prototype.plugin = unyield(function *(name, id, data) {
     return yield db.put(key, data);
   } else {
     debug('getting %s data for %s plugin', key, name);
-    return yield db.get(key);
+    try {
+      return yield db.get(key);
+    } catch (err) {
+      // not found
+      return false;
+    }
   }
 });
 

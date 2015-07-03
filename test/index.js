@@ -77,10 +77,19 @@ describe('Cache#plugin(name, key, value)', function () {
     yield cache.initialize();
   });
 
+  afterEach(function *() {
+    yield cache.clean();
+  });
+
   it('should store data to the plugin namespace', function *() {
     yield cache.plugin('babel', 'key', 'value');
     var value = yield cache.plugin('babel', 'key');
     assert.equal(value, 'value');
+  });
+
+  it('should not fail when the key was not there previously', function *() {
+    var value = yield cache.plugin('babel', 'key');
+    assert(!value);
   });
 });
 

@@ -29,6 +29,31 @@ Accepts the updated in-memory `mapping` and saves all the files into cache.
 Can be used to set/get a single file's data from the cache. If `data` is
 excluded, it is assumed to be a getter. (otherwise, it will be a setter)
 
+### Cache#plugin(name, key, [data])
+
+Can be used to set/get a plugin's cache data. If `data` is excluded, it
+is assumed to be a getter. (otherwise, it will be a setter)
+
+The `name` should be the same as the plugin's name, to make debugging easier.
+The `key` can be either a `String` or an `Array`. Below is a sample plugin
+that is using caching.
+
+```js
+// hash the source code as well as options to allow this
+// to work even if the user changes their config!
+var key = [ hash(src), hash(options) ];
+
+// see if it's already been cached
+var cached = yield cache.plugin('plugin', key); // get
+if (cached) return cached;
+
+// run the normal transformation
+var results = plugin(src, options);
+// cache the results for next time
+yield cache.plugin('plugin', key, results); // set
+return results;
+```
+
 ### Cache#clean()
 
 Closes the database and wipes it out from the disk.

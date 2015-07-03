@@ -3,7 +3,6 @@ var Cache = require('..');
 var fs = require('co-fs');
 var mkdir = require('mkdirp-then');
 var path = require('path');
-var Promise = require('bluebird');
 var rimraf = require('rimraf-then');
 var tmp = path.join(require('os').tmpdir(), 'duo-cache');
 

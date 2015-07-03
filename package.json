@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "co-fs": "^1.2.0",
+    "gnode": "^0.1.1",
     "mocha": "^2.2.5"
   }
 }

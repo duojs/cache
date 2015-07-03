@@ -14,16 +14,16 @@
     "url": "https://github.com/duojs/cache/issues"
   },
   "dependencies": {
+    "co-level": "^1.0.1",
     "debug": "^2.2.0",
     "level": "^1.2.0",
-    "level-promise": "^2.0.4",
-    "native-or-bluebird": "^1.2.0",
-    "object-values": "^1.0.0"
+    "mkdirp-then": "^1.0.1",
+    "object-values": "^1.0.0",
+    "rimraf-then": "^1.0.0",
+    "unyield": "0.0.1"
   },
   "devDependencies": {
-    "bluebird": "^2.9.30",
-    "mkdirp": "^0.5.1",
-    "mocha": "^2.2.5",
-    "rimraf": "^2.4.0"
+    "co-fs": "^1.2.0",
+    "mocha": "^2.2.5"
   }
 }

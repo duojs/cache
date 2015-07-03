@@ -5,15 +5,9 @@
 
 var debug = require('debug')('duo-cache');
 var level = require('level');
-var Promise = require('native-or-bluebird');
-var promisify = require('level-promise');
+var unyield = require('unyield');
 var values = require('object-values');
-
-/**
- * Promisified helper functions.
- */
-
-var destroy = Promise.promisify(level.destroy);
+var wrap = require('co-level');
 
 /**
  * Single export.
@@ -39,20 +33,16 @@ function Cache(location) {
  * @returns {Promise}
  */
 
-Cache.prototype.initialize = function () {
-  if (this.leveldb) return this.leveldb.open();
+Cache.prototype.initialize = unyield(function *() {
+  if (!this.leveldb) {
+    this.leveldb = wrap(level(this.location, {
+      keyEncoding: 'json',
+      valueEncoding: 'json'
+    }));
+  }
 
-  var db = this.leveldb = promisify(level(this.location, {
-    keyEncoding: 'json',
-    valueEncoding: 'json'
-  }));
-
-  // TODO: remove this once https://github.com/nathan7/level-promise/pull/5
-  // is merged and released.
-  db.open = Promise.promisify(db.open, db);
-
-  return db.open();
-};
+  return yield this.leveldb.open();
+});
 
 /**
  * Reads the list of files into memory.
@@ -60,19 +50,21 @@ Cache.prototype.initialize = function () {
  * TODO: this should probably be renamed to something more
  * descriptive in the future.
  *
+ * TODO: refactor this to be more co-like.
+ *
  * @returns {Promise}
  */
 
-Cache.prototype.read = function () {
+Cache.prototype.read = unyield(function *() {
   debug('reading mapping from disk');
   var db = this.leveldb;
   var ret = {};
 
-  return new Promise(function (resolve, reject) {
+  yield function (done) {
     db.createReadStream()
       .on('error', function (err) {
         debug('error reading', err.stack);
-        reject(err);
+        done(err);
       })
       .on('data', function (data) {
         if (data.key[0] !== 'file') return;
@@ -81,10 +73,10 @@ Cache.prototype.read = function () {
         ret[file.id] = file;
       })
       .on('end', function () {
-        resolve(ret);
+        done(null, ret);
       });
-  });
-};
+  };
+});
 
 /**
  * Accepts an in-memory mapping and updates the specified files in the cache.
@@ -95,7 +87,7 @@ Cache.prototype.read = function () {
  * @returns {Promise}
  */
 
-Cache.prototype.update = function (mapping) {
+Cache.prototype.update = unyield(function *(mapping) {
   var db = this.leveldb;
 
   var ops = values(mapping).map(function (file) {
@@ -103,8 +95,8 @@ Cache.prototype.update = function (mapping) {
   }, this);
 
   debug('updating %d files', ops.length);
-  return db.batch(ops);
-};
+  return yield db.batch(ops);
+});
 
 /**
  * Get/Set a single file's cache data.
@@ -114,18 +106,18 @@ Cache.prototype.update = function (mapping) {
  * @returns {Promise}
  */
 
-Cache.prototype.file = function (id, data) {
+Cache.prototype.file = unyield(function *(id, data) {
   var db = this.leveldb;
   var key = [ 'file', id ];
 
   if (data) {
     debug('update file: %s', id);
-    return db.put(key, data);
+    return yield db.put(key, data);
   } else {
     debug('get file: %s', id);
-    return db.get(key);
+    return yield db.get(key);
   }
-};
+});
 
 /**
  * Get/Set a cache item on behalf of a plugin.
@@ -136,18 +128,18 @@ Cache.prototype.file = function (id, data) {
  * @returns {Promise}
  */
 
-Cache.prototype.plugin = function (name, id, data) {
+Cache.prototype.plugin = unyield(function *(name, id, data) {
   var db = this.leveldb;
   var key = [ 'plugin', name, key ];
 
   if (data) {
     debug('setting %s data for %s plugin', key, name);
-    return db.put(key, data);
+    return yield db.put(key, data);
   } else {
     debug('getting %s data for %s plugin', key, name);
-    return db.get(key);
+    return yield db.get(key);
   }
-};
+});
 
 /**
  * Wipes out the cache from disk.
@@ -155,13 +147,13 @@ Cache.prototype.plugin = function (name, id, data) {
  * @returns {Promise}
  */
 
-Cache.prototype.clean = function () {
+Cache.prototype.clean = unyield(function *() {
   var db = this.leveldb;
   var location = this.location;
 
   debug('cleaning database');
-  return Promise.promisify(db.close, db)()
-    .then(function () {
-      return destroy(location);
-    });
-};
+  yield db.close();
+  yield function (done) {
+    level.destroy(location, done);
+  };
+});

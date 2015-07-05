@@ -14,7 +14,7 @@ node_modules: package.json
 	@npm install
 
 lint:
-	@$(ESLINT) . bin/*
+	@$(ESLINT) .
 
 
 .PHONY: test

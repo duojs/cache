@@ -26,6 +26,8 @@
     "bluebird": "^2.9.31",
     "co-fs": "^1.2.0",
     "co-mocha": "~1.0.3",
+    "eslint": "^0.24.0",
+    "eslint-config-duo": "0.0.1",
     "gnode": "^0.1.1",
     "mocha": "^2.2.5"
   }

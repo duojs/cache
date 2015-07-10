@@ -55,8 +55,10 @@ Cache.prototype.get = unyield(function *(key, options) {
   var db = this.leveldb;
 
   try {
+    debug('get: %j', key);
     return yield db.get(key, options);
   } catch (err) {
+    debug('key %j not found', key);
     return false;
   }
 });
@@ -73,6 +75,7 @@ Cache.prototype.get = unyield(function *(key, options) {
 
 Cache.prototype.put = unyield(function *(key, value, options) {
   var db = this.leveldb;
+  debug('put: %j', key);
   return yield db.put(key, value, options);
 });
 
@@ -85,6 +88,7 @@ Cache.prototype.put = unyield(function *(key, value, options) {
 
 Cache.prototype.del = unyield(function *(key, options) {
   var db = this.leveldb;
+  debug('del: %j', key);
   return yield db.del(key, options);
 });
 
@@ -153,11 +157,9 @@ Cache.prototype.update = unyield(function *(mapping) {
 Cache.prototype.file = unyield(function *(id, data) {
   var key = [ 'file', id ];
 
-  if (data) {
-    debug('update file: %s', id);
+  if (typeof data !== 'undefined') {
     return yield this.put(key, data);
   } else {
-    debug('get file: %s', id);
     return yield this.get(key);
   }
 });
@@ -174,11 +176,9 @@ Cache.prototype.file = unyield(function *(id, data) {
 Cache.prototype.plugin = unyield(function *(name, id, data) {
   var key = [ 'plugin', name, id ];
 
-  if (data) {
-    debug('setting %s data for %s plugin', key, name);
+  if (typeof data !== 'undefined') {
     return yield this.put(key, data);
   } else {
-    debug('getting %s data for %s plugin', key, name);
     return yield this.get(key);
   }
 });

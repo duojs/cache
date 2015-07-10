@@ -53,7 +53,12 @@ Cache.prototype.initialize = unyield(function *() {
 
 Cache.prototype.get = unyield(function *(key, options) {
   var db = this.leveldb;
-  return yield db.get(key, options);
+
+  try {
+    return yield db.get(key, options);
+  } catch (err) {
+    return false;
+  }
 });
 
 /**
@@ -174,12 +179,7 @@ Cache.prototype.plugin = unyield(function *(name, id, data) {
     return yield this.put(key, data);
   } else {
     debug('getting %s data for %s plugin', key, name);
-    try {
-      return yield this.get(key);
-    } catch (err) {
-      // not found
-      return false;
-    }
+    return yield this.get(key);
   }
 });
 

@@ -29,8 +29,6 @@ function Cache(location) {
 
 /**
  * Initializes the instance and opens the database.
- *
- * @returns {Promise}
  */
 
 Cache.prototype.initialize = unyield(function *() {
@@ -41,7 +39,48 @@ Cache.prototype.initialize = unyield(function *() {
     }));
   }
 
-  return yield this.leveldb.open();
+  yield this.leveldb.open();
+});
+
+/**
+ * Helper for getting a value from the cache. Any arguments are
+ * forwarded to leveldb.
+ *
+ * @param {Array:String} key
+ * @param {Object} [options]
+ * @return {Mixed}
+ */
+
+Cache.prototype.get = unyield(function *(key, options) {
+  var db = this.leveldb;
+  return yield db.get(key, options);
+});
+
+/**
+ * Helper for setting a value in the cache. Any arguments are
+ * forwarded to leveldb.
+ *
+ * @param {Array:String} key
+ * @param {Mixed} value
+ * @param {Object} [options]
+ * @return {Mixed}
+ */
+
+Cache.prototype.put = unyield(function *(key, value, options) {
+  var db = this.leveldb;
+  return yield db.put(key, value, options);
+});
+
+/**
+ * Helper for invalidating a value in the cache. Any arguments are
+ * forwarded to leveldb.
+ *
+ * @return {Mixed}
+ */
+
+Cache.prototype.del = unyield(function *(key, options) {
+  var db = this.leveldb;
+  return yield db.del(key, options);
 });
 
 /**
@@ -107,15 +146,14 @@ Cache.prototype.update = unyield(function *(mapping) {
  */
 
 Cache.prototype.file = unyield(function *(id, data) {
-  var db = this.leveldb;
   var key = [ 'file', id ];
 
   if (data) {
     debug('update file: %s', id);
-    return yield db.put(key, data);
+    return yield this.put(key, data);
   } else {
     debug('get file: %s', id);
-    return yield db.get(key);
+    return yield this.get(key);
   }
 });
 
@@ -129,16 +167,15 @@ Cache.prototype.file = unyield(function *(id, data) {
  */
 
 Cache.prototype.plugin = unyield(function *(name, id, data) {
-  var db = this.leveldb;
   var key = [ 'plugin', name, id ];
 
   if (data) {
     debug('setting %s data for %s plugin', key, name);
-    return yield db.put(key, data);
+    return yield this.put(key, data);
   } else {
     debug('getting %s data for %s plugin', key, name);
     try {
-      return yield db.get(key);
+      return yield this.get(key);
     } catch (err) {
       // not found
       return false;
